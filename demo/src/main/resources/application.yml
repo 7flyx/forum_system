@@ -5,15 +5,19 @@ spring:
     name: forum_system
   # 数据库连接配置
   datasource:
-    url: jdbc:mysql://127.0.0.1:3306/mybatis_test?characterEncoding=utf8&useSSL=false
+    url: jdbc:mysql://127.0.0.1:3306/forum_db?characterEncoding=utf8&useSSL=false&serverTimezone=UTC
     username: root
     password: 2001
     driver-class-name: com.mysql.cj.jdbc.Driver
+    spring:
+      jpa:
+        hibernate:
+          ddl-auto: update
 mybatis:
   configuration: # 配置打印 MyBatis日志
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
     map-underscore-to-camel-case: true # 配置驼峰自动转换
-  mapper-locations: classpath:mapper/**Mapper.xml
+  mapper-locations: classpath:mapper/**/*.xml
 
 # 服务器配置
 server:
