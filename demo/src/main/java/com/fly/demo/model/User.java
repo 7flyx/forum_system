@@ -1,5 +1,7 @@
 package com.fly.demo.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -13,6 +15,7 @@ public class User {
     @ApiModelProperty("用户名")
     private String username;
 
+    @JsonIgnore // 不参与json序列化
     private String password;
 
     @ApiModelProperty("昵称")
@@ -23,9 +26,10 @@ public class User {
     private String email;
 
     private Byte gender;
-
+    @JsonIgnore
     private String salt;
     @ApiModelProperty("头像地址")
+    @JsonInclude(JsonInclude.Include.ALWAYS) // 强制参与json序列化
     private String avatarUrl;
     @ApiModelProperty("发帖数量")
     private Integer articleCount;
@@ -35,7 +39,7 @@ public class User {
     private String remark;
 
     private Byte state;
-
+    @JsonIgnore
     private Byte deleteState;
     @ApiModelProperty("注册日期")
     private Date createTime;

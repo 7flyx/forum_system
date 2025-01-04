@@ -20,4 +20,7 @@ public interface IUserService {
 
     // 根据id 查询用户信息
     User selectById(Long id);
+
+    // 发帖数加1
+    void addOneArticleCountById(Long id);
 }

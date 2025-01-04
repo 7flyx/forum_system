@@ -1,8 +1,13 @@
 package com.fly.demo.common;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 public class AppResult<T> {
+    @JsonInclude(JsonInclude.Include.ALWAYS) // 无论任何情况，都要参与json序列化
     private int code; // 状态码
+    @JsonInclude(JsonInclude.Include.ALWAYS) // 无论任何情况，都要参与json序列化
     private String message; // 描述信息
+    @JsonInclude(JsonInclude.Include.ALWAYS) // 无论任何情况，都要参与json序列化
     private T data; // 具体的数据
     public AppResult(int code, String message) {
         this(code, message, null);

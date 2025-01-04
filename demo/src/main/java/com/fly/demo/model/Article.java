@@ -27,4 +27,8 @@ public class Article {
     private Date updateTime;
 
     private String content;
+
+    // 关联对象
+    private User user;
+    private Board board;
 }

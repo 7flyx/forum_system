@@ -7,7 +7,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta http-equiv="X-UA-Compatible" content="ie=edge" />
   <link rel="shortcut icon" href="/favicon.ico">
-  <title>比特论坛</title>
+  <title>论坛</title>
   <!-- 导入CSS -->
   <link href="./dist/css/tabler.min.css?1674944402" rel="stylesheet" />
   <link rel="stylesheet" href="./dist/css/jquery.toast.css">
@@ -180,7 +180,7 @@
               <ul class="list-inline list-inline-dots mb-0">
                 <li class="list-inline-item">
                   Copyright &copy; 2023
-                  <a href="#" class="link-secondary">比特论坛</a>
+                  <a href="#" class="link-secondary">论坛</a>
                   版权所有
                 </li>
                 <li class="list-inline-item">
@@ -311,13 +311,62 @@
     // 成功后，手动设置用户信息
     // $('#index_nav_avatar').css('background-image', 'url(' + user.avatarUrl + ')');
     $.ajax({
-
+      url: 'user/info',
+      type: 'get',
+      // data: data // 没有传入参数，表示要从session中拿数据
+      success: function(result) {
+        if (result.code == 0) { // 后端处理成功，前端渲染数据即可
+          let user = result.data;
+          // 判断用户头像是否有效
+          if (!user.avatarUrl) {
+            user.avatarUrl = avatarUrl;
+          }
+          // 设置页面上的头像
+          $('#index_nav_avatar').css('background-image','url(' + user.avatarUrl + ')');
+          // 用户昵称
+          $('#index_nav_nickname').html(user.nickname);
+          // 设置用户组
+          let subName = user.isAdmin == 1? '管理员' : '普通用户';
+          // console.log("hell world "  + subName);
+          $('#index_nav_name_sub').html(subName);
+        } else {
+          $.toast({
+            heading: '警告',
+            text: data.message,
+            icon: 'warning'
+          });
+        }
+      },
+      error: function(result) {
+        $.toast({
+          heading: '警告',
+          text: data.message,
+          icon: 'warning'
+        });
+      }
     });
 
     // ========================= 获取版块信息 =======================
     // 成功后，调用buildTopBoard()方法，构建版块列表
     $.ajax({
-      
+      url: 'board/topList',
+      type: 'get',
+      success: function(result) {
+        if (result.code == 0) {
+          // 构建板块列表
+          buildTopBoard(result.data);
+        } else {
+          $.toast({
+            heading: '警告',
+            text: data.message,
+            icon: 'warning'
+          });
+        }
+      },
+      error: function(result) {
+
+      }
+
     });
 
     //========================= 构造首页版块=======================
@@ -392,7 +441,11 @@
     // 成功后，跳转到sign-in.html
     $('#index_user_logout').click(function () {
       $.ajax({
-        
+        url: 'user/logout',
+        type: 'get',
+        complete: function(result) { // 无论请求成功 失败，都会执行这个回调函数
+          location.assign('/sign-in.html');
+        }
       });
     });
 

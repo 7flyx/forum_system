@@ -19,6 +19,7 @@ import java.util.Date;
 public class UserServiceImpl implements IUserService {
     @Resource
     private UserMapper userMapper;
+
     @Override
     public void createNormalUser(User user) {
         // 1、非空校验
@@ -29,7 +30,7 @@ public class UserServiceImpl implements IUserService {
             // 打日志
             log.warn(ResultCode.FAILED_PARAMS_VALIDATE.toString());
             // 抛异常
-            throw  new ApplicationException(AppResult.failed(ResultCode.ERROR_SERVICES));
+            throw new ApplicationException(AppResult.failed(ResultCode.ERROR_SERVICES));
         }
         // 2、按用户名查询用户信息
         User existsUser = userMapper.selectByUserName(user.getUsername());
@@ -40,11 +41,11 @@ public class UserServiceImpl implements IUserService {
             throw new ApplicationException(AppResult.failed(ResultCode.FAILED_USER_EXISTS));
         }
         // 3、新增用户流程，设置默认值
-        user.setGender((byte)2);
+        user.setGender((byte) 2);
         user.setArticleCount(0);
-        user.setIsAdmin((byte)0);
-        user.setState((byte)0);
-        user.setDeleteState((byte)0);
+        user.setIsAdmin((byte) 0);
+        user.setState((byte) 0);
+        user.setDeleteState((byte) 0);
         // 当前时间
         Date date = new Date();
         user.setCreateTime(date);
@@ -78,7 +79,7 @@ public class UserServiceImpl implements IUserService {
         // 2、按用户名查询用户信息
         User user = selectByUserName(username);
         // 3、对查询结果做 非空校验
-        if(user == null) {
+        if (user == null) {
             log.warn(ResultCode.FAILED_LOGIN.toString() + ", username = " + username);
             throw new ApplicationException(AppResult.failed(ResultCode.FAILED_LOGIN));
         }
@@ -94,4 +95,40 @@ public class UserServiceImpl implements IUserService {
         return user;
     }
 
+    @Override
+    public User selectById(Long id) {
+        // 1、非空校验
+        if (id == null) {
+            log.warn(ResultCode.FAILED_PARAMS_VALIDATE.toString());
+            throw new ApplicationException(AppResult.failed(ResultCode.FAILED_PARAMS_VALIDATE));
+        }
+        // 2、调用dao层代码 进行查询
+        User user = userMapper.selectByPrimaryKey(id);
+        return user;
+    }
+
+    @Override
+    public void addOneArticleCountById(Long id) {
+        if (id == null || id < 0) {
+            log.info(ResultCode.FAILED_BOARD_ARTICLE_COUNT.toString());
+            throw new ApplicationException(AppResult.failed(ResultCode.FAILED_BOARD_ARTICLE_COUNT));
+        }
+        // 查询用户
+        User user = userMapper.selectByPrimaryKey(id);
+        if (user == null) {
+            log.warn(ResultCode.ERROR_IS_NULL.toString() + ", user id = " + id);
+            throw new ApplicationException(AppResult.failed(ResultCode.ERROR_IS_NULL));
+        }
+        // 更新数据
+        User updateUser = new User();
+        updateUser.setId(user.getId());
+        updateUser.setArticleCount(user.getArticleCount() + 1);
+        // 更新数据库
+        int row = userMapper.updateByPrimaryKeySelective(updateUser);
+        if (row != 1) {
+            log.warn(ResultCode.FAILED.toString() + ", 受影响的行数大于1.");
+            throw new ApplicationException(AppResult.failed(ResultCode.FAILED));
+        }
+
+    }
 }

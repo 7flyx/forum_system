@@ -9,13 +9,18 @@ spring:
     username: root
     password: 2001
     driver-class-name: com.mysql.cj.jdbc.Driver
-    spring:
-      jpa:
-        hibernate:
-          ddl-auto: update
+#    spring:
+  jpa:
+    hibernate:
+      ddl-auto: update
   mvc:
     pathmatch:
       matching-strategy: ANT_PATH_MATCHER # springfox-swagger 兼容性配置
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss # 日期格式
+    default-property-inclusion: NON_NULL # 序列化时，不给null时序列化
+
+
 mybatis:
   configuration: # 配置打印 MyBatis日志
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
@@ -35,3 +40,10 @@ logging:
     com.fly.demo: debug # 指定包下的日志级别
   file:
     path: E:/Github_Coding/log/forum_system # 日志保存的路径
+
+
+fly-forum:
+  login:
+    url: sign-in.html # 未登录情况下 强制跳转页面
+  index:
+    board-num: 9 # 板块显示的个数

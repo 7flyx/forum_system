@@ -86,14 +86,55 @@
       }
       // 发送请求， 成功后，显示版块相关信息
       $.ajax({
-        
+        url: 'board/getById?id=' + boardId,
+        type: 'get',
+        success: function(result) {
+          let board = result.data;
+            if (result.code == 0) { // 成功时，更换页面信息
+              $('#article_list_board_title').html(board.name); // 板块名称
+              $('#article_list_count_board').html('帖子数量：' + board.articleCount); // 帖子数量
+
+            } else {
+              $.toast({
+                heading: '错误',
+                text: '访问出现问题，请与管理员联系',
+                icon: 'error'
+              });
+            }
+        },
+        error: function(result) {
+          $.toast({
+            heading: '错误',
+            text: '访问出现问题，请与管理员联系',
+            icon: 'error'
+          });
+        }
       });
     }
 
     // ========================= 获取帖子列表 =======================
     // 成功后，调用listBuildArticleList()方法，构建帖子列表
     $.ajax({
-      
+      url: 'article/getAllByBoardId' + queryString,
+      type: 'get',
+      success: function(result) {
+        if (result.code == 0) {
+          listBuildArticleList(result.data);
+        } else {
+          $.toast({
+            heading: '错误',
+            text: '访问出现问题，请与管理员联系',
+            icon: 'error'
+          });
+        }
+      },
+      error: function(result) {
+        $.toast({
+          heading: '错误',
+          text: '访问出现问题，请与管理员联系',
+          icon: 'error'
+        });
+      }
 
     });
 

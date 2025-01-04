@@ -13,10 +13,7 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -84,8 +81,40 @@ public class UserController {
         return AppResult.success();
     }
 
+    @ApiOperation("查询用户")
+    @GetMapping("/info")
+    public AppResult<User> getUserInfo(HttpServletRequest req,
+                                       @ApiParam("用户Id") @RequestParam(value = "id", required = false) Long id) {
+        User user = null;
+        if (id == null) {
+            // 1、如果id为空，从session中返回当前登录的用户信息
+            HttpSession session = req.getSession(false);
+            // 判断session和用户信息是否有效
+            if (session == null || session.getAttribute(AppConfig.USER_SESSION) == null) {
+                // 用户没有登录，返回错信息
+                return AppResult.failed(ResultCode.FAILED_FORBIDDEN);
+            }
+            user = (User)session.getAttribute(AppConfig.USER_SESSION);
+        } else {
+            // 2、id不为空，就从数据库中查询用户信息
+            user = userService.selectById(id);
+        }
+        if (user == null) {
+            return AppResult.failed(ResultCode.FAILED_USER_NOT_EXISTS);
+        }
+        return AppResult.success(user);
+    }
 
 
-
+    @ApiOperation("退出登录")
+    @GetMapping("/logout")
+    public AppResult logout(HttpServletRequest req) {
+        HttpSession session = req.getSession(false);
+        if (session != null) {
+            // 用户已经登录，销毁session即可
+            session.invalidate();
+        }
+        return AppResult.success("退出成功");
+    }
 
 }
