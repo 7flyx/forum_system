@@ -13,6 +13,9 @@ spring:
       jpa:
         hibernate:
           ddl-auto: update
+  mvc:
+    pathmatch:
+      matching-strategy: ANT_PATH_MATCHER # springfox-swagger 兼容性配置
 mybatis:
   configuration: # 配置打印 MyBatis日志
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl

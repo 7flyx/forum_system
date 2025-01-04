@@ -99,6 +99,23 @@
 			<artifactId>druid-spring-boot-starter</artifactId>
 			<version>1.2.15</version>
 		</dependency>
+		<!-- https://mvnrepository.com/artifact/io.springfox/springfox-swagger2 -->
+<!--		API文档生成，基于swagger2-->
+		<dependency>
+			<groupId>io.springfox</groupId>
+			<artifactId>springfox-boot-starter</artifactId>
+			<version>3.0.0</version>
+		</dependency>
+<!--		Springboot 监控监控-->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+<!--用于编码加密工具-->
+		<dependency>
+			<groupId>commons-codec</groupId>
+			<artifactId>commons-codec</artifactId>
+		</dependency>
 	</dependencies>
 
 	<build>
