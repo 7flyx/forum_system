@@ -50,4 +50,17 @@ class ArticleServiceImplTest {
         System.out.println(objectMapper.writeValueAsString(article));
 
     }
+
+    @Test
+    @Transactional
+    void modify() {
+        articleService.modify(2L, "单元测试1111", "单眼测试1111");
+
+    }
+
+    @Test
+    void selectByUserId() throws JsonProcessingException {
+        List<Article> articles = articleService.selectByUserId(2L);
+        System.out.println(objectMapper.writeValueAsString(articles));
+    }
 }

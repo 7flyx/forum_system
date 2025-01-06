@@ -63,4 +63,31 @@ public class BoardServiceImpl implements IBoardService {
         Board board = boardMapper.selectByPrimaryKey(id);
         return board;
     }
+
+    @Override
+    public void subOneArticleCountById(Long id) {
+        // 非空校验
+        if (id == null || id <= 0) {
+            log.warn(ResultCode.FAILED_BOARD_ARTICLE_COUNT.toString());
+            throw new ApplicationException(AppResult.failed(ResultCode.FAILED_BOARD_ARTICLE_COUNT));
+        }
+        Board board = boardMapper.selectByPrimaryKey(id);
+        if (board == null) {
+            log.warn(ResultCode.FAILED_BOARD_NOT_EXISTS.toString());
+            throw new ApplicationException(AppResult.failed(ResultCode.FAILED_BOARD_NOT_EXISTS));
+        }
+        // 构造更新对象
+        Board updateBoard = new Board();
+        updateBoard.setId(board.getId());
+        updateBoard.setArticleCount(board.getArticleCount() - 1);
+        if (updateBoard.getArticleCount() < 0) {
+            updateBoard.setArticleCount(0);
+        }
+        // dao层
+        int row = boardMapper.updateByPrimaryKeySelective(updateBoard);
+        if (row != 1) {
+            log.warn(ResultCode.FAILED.toString());
+            throw new ApplicationException(AppResult.failed(ResultCode.FAILED));
+        }
+    }
 }

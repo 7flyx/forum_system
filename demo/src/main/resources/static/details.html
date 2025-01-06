@@ -339,7 +339,26 @@
     // 成功后，调用buildArticleReply()方法构建回复列表
     function loadArticleDetailsReply() {
       $.ajax({
-        
+        url: 'reply/getReplies?articleId=' + currentArticle.id,
+        type: 'get',
+        success: function(result) {
+          if (result.code == 0) {
+            buildArticleReply(result.data);
+          } else {
+            $.toast({
+              heading: '错误',
+              text: '访问出现问题，请与管理员联系',
+              icon: 'error'
+            });
+          }
+        },
+        error: function(result) {
+          $.toast({
+            heading: '错误',
+            text: '访问出现问题，请与管理员联系',
+            icon: 'error'
+          });
+        }
       });
     }
     // 
@@ -446,7 +465,33 @@
     // 成功后，修改点赞个数 currentArticle.likeCount = currentArticle.likeCount + 1;
     $('#details_btn_like_count').click(function () {
       $.ajax({
-        
+        url: 'article/thumbsUp?id=' + currentArticle.id,
+        type: 'post',
+        success: function(result) {
+          if (result.code == 0) {
+            $.toast({
+              heading: '成功',
+              text: '点赞成功',
+              icon: 'success'
+            });
+            currentArticle.likeCount = currentArticle.likeCount + 1;
+            // 设置页面的值
+            $('#details_article_likeCount').html(currentArticle.likeCount);
+          } else {
+            $.toast({
+              heading: '警告',
+              text: result.message,
+              icon: 'warning'
+            });
+          }
+        },
+        error: function(result) {
+          $.toast({
+            heading: '错误',
+            text: '出现错误',
+            icon: 'error'
+          });
+        }
       });
     });
 
@@ -466,14 +511,48 @@
       }
 
       // 构造帖子对象
+      let postData = {
+        articleId: articleIdEl.val(),
+        content: replyContentEl.val()
+      };
       
+      console.log($('#details_article_reply_content').val());
+      $('#details_article_reply_content').val(''); // 清空编辑区
       // 发送请求，成功后 
       // 1. 清空回复区域
       // 2. 更新回贴数 currentArticle.replyCount = currentArticle.replyCount + 1;
       // 3. 调用loadArticleDetailsReply()方法，重新构建回贴列表
       
       $.ajax({
-
+        url: 'reply/create',
+        type: 'post',
+        data: postData,
+        success: function(result) {
+          if (result.code == 0) {
+            $.toast({
+              heading: '成功',
+              text: '回复成功',
+              icon: 'success'
+            });
+            // 更新页面上的回复数量
+            currentArticle.replyCount = currentArticle.replyContent + 1;
+            $('#details_article_replyCount').html(currentArticle.replyContent);
+            loadArticleDetailsReply();
+          } else {
+            $.toast({
+              heading: '提示',
+              text: result.message,
+              icon: 'warning'
+            });
+          }
+        },
+        error: function(result) {
+          $.toast({
+            heading: '错误',
+            text: '出现错误',
+            icon: 'error'
+          });
+        }
       });
     });
 
@@ -482,8 +561,32 @@
     // url: 'article/delete?id=' + $('#details_article_id').val()
     $('#details_artile_delete').click(function () {
       $.ajax({
-        
-
+        url: 'article/delete?id=' + $('#details_article_id').val(),
+        type: 'post',
+        success: function(result) {
+          if (result.code == 0) {
+            $.toast({
+              heading: '成功',
+              text: '删除成功',
+              icon: 'success'
+            });
+            // 跳转到首页
+            changeNavActive($('#nav-link-title'));
+          } else {
+            $.toast({
+              heading: '警告',
+              text: result.message,
+              icon: 'warning'
+            });
+          }
+        },
+        error: function(result) {
+          $.toast({
+            heading: '错误',
+            text: '出现错误',
+            icon: 'error'
+          });
+        }
       });
 
     });

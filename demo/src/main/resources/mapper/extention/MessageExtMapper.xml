@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fly.demo.dao.MessageMapper">
+<!--    MessageMapper.xml 进行额外的补充，避免写在同一个xml文件中，因为 自动生成代码那个，很容易将自己写的代码进行覆盖了-->
+<!--    1、注意namespace表示命名空间，指定要与 MessageMapper.xml 中的namespace相同-->
+<!--    2、统一用 com.fly.demo.dao.MessageMapper，也就是 MessageMapper-->
+<!--    3、不同的映射文件指定了相同的namespace后，定义的所有用id或name标识的结果集映射都可以在不同的文件中共享-->
+
+<!--    自定义结果集-->
+    <resultMap id="AllInfoResultMap" type="com.fly.demo.model.Message" extends="BaseResultMap">
+<!--        关联发送者对象-->
+        <association property="postUser" resultMap="com.fly.demo.dao.UserMapper.BaseResultMap" columnPrefix="u_"/>
+    </resultMap>
+
+<!--    根据用户id查询该用户未读数量-->
+    <select id="selectUnreadCount" parameterType="java.lang.Long" resultType="java.lang.Integer" >
+        select
+            count(*)
+        from
+            t_message
+        where state = 0 and deleteState = 0 and receiveUserId = #{receiveUserId, jdbcType=BIGINT};
+    </select>
+
+<!--    根据接受者id 查询站内信的列表-->
+    <select id="selectByReceiveUserId" parameterType="java.lang.Long" resultMap="AllInfoResultMap">
+        select
+            u.id as u_id, u.avatarUrl as u_avatarUrl, u.nickname as u_nickname,u.gender as u_gender,
+            m.id, m.postUserId, m.receiveUserId, m.content, m.state, m.createTime, m.updateTime
+        from t_message m, t_user u
+        where m.postUserId = u.id and m.deleteState = 0 and m.receiveUserId = #{receiveUserId,jdbcType=BIGINT}
+        order by
+            m.createTime desc, m.state asc;
+    </select>
+
+</mapper>

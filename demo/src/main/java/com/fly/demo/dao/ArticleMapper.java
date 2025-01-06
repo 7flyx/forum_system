@@ -27,4 +27,7 @@ public interface ArticleMapper {
 
     // 根据帖子id查询详情
     Article selectDetailById(@Param("id") Long id);
+
+    // 根据用户id查询 帖子列表
+    List<Article> selectByUserId(@Param("userId") Long userId);
 }

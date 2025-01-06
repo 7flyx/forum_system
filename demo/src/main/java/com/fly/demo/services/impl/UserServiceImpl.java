@@ -8,12 +8,12 @@ import com.fly.demo.model.User;
 import com.fly.demo.services.IUserService;
 import com.fly.demo.utils.MD5Util;
 import com.fly.demo.utils.StringUtil;
+import com.fly.demo.utils.UUIDUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.Date;
-
 @Slf4j
 @Service
 public class UserServiceImpl implements IUserService {
@@ -46,7 +46,6 @@ public class UserServiceImpl implements IUserService {
         user.setIsAdmin((byte) 0);
         user.setState((byte) 0);
         user.setDeleteState((byte) 0);
-        // 当前时间
         Date date = new Date();
         user.setCreateTime(date);
         user.setUpdateTime(date);
@@ -129,6 +128,134 @@ public class UserServiceImpl implements IUserService {
             log.warn(ResultCode.FAILED.toString() + ", 受影响的行数大于1.");
             throw new ApplicationException(AppResult.failed(ResultCode.FAILED));
         }
+    }
 
+    @Override
+    public void subOneArticleCountById(Long id) {
+        if (id == null || id < 0) {
+            log.info(ResultCode.FAILED_BOARD_ARTICLE_COUNT.toString());
+            throw new ApplicationException(AppResult.failed(ResultCode.FAILED_BOARD_ARTICLE_COUNT));
+        }
+        // 查询用户
+        User user = userMapper.selectByPrimaryKey(id);
+        if (user == null) {
+            log.warn(ResultCode.ERROR_IS_NULL.toString() + ", user id = " + id);
+            throw new ApplicationException(AppResult.failed(ResultCode.ERROR_IS_NULL));
+        }
+        // 更新数据
+        User updateUser = new User();
+        updateUser.setId(user.getId());
+        updateUser.setArticleCount(user.getArticleCount() - 1);
+        if (updateUser.getArticleCount() < 0) { // 发帖数小于0，直接归0
+            updateUser.setArticleCount(0);
+        }
+        // 更新数据库
+        int row = userMapper.updateByPrimaryKeySelective(updateUser);
+        if (row != 1) {
+            log.warn(ResultCode.FAILED.toString() + ", 受影响的行数大于1.");
+            throw new ApplicationException(AppResult.failed(ResultCode.FAILED));
+        }
+    }
+
+    @Override
+    public void modifyInfo(User user) {
+        if (user == null || user.getId() == null || user.getId() <= 0) {
+            log.warn(ResultCode.FAILED_USER_NOT_EXISTS.toString());
+            throw new ApplicationException(AppResult.failed(ResultCode.FAILED_USER_NOT_EXISTS));
+        }
+        User existsUser = userMapper.selectByPrimaryKey(user.getId());
+        if (existsUser == null) { // 校验数据库中的user
+            log.warn(ResultCode.FAILED_USER_NOT_EXISTS.toString());
+            throw new ApplicationException(AppResult.failed(ResultCode.FAILED_USER_NOT_EXISTS));
+        }
+        // 3、定义一个标志位
+        boolean checkAttr = false; // false 表示没有 校验通过
+        User updateUser = new User(); // 用来更新的对象。防止用户传入的User对象设置了其他的属性，当使用动态SQL进行更新的时候，覆盖了没有经过校验的字段
+        updateUser.setId(user.getId());
+        // 对每一个参数进行校验 并赋值
+        if(!StringUtil.iSEmpty(user.getUsername())
+            && !user.getUsername().equals(existsUser.getUsername())) {
+            User checkUser = userMapper.selectByUserName(user.getUsername());
+            if (checkUser != null) {
+                // 用户已存在
+                log.warn(ResultCode.FAILED_USER_EXISTS.toString());
+                throw new ApplicationException(AppResult.failed(ResultCode.FAILED_USER_EXISTS));
+            }
+            // 数据库中没有找到相应的用户名，表示可以修改
+            updateUser.setUsername(user.getUsername());
+            checkAttr = true;
+        }
+
+        // 校验昵称
+        if (!StringUtil.iSEmpty(user.getNickname())
+                && !user.getNickname().equals(existsUser.getNickname())) {
+            updateUser.setNickname(user.getNickname());
+            checkAttr = true;
+        }
+        // 校验性别
+        if(user.getGender() != null && existsUser.getGender() != user.getGender()) {
+            updateUser.setGender(user.getGender());
+            checkAttr = true;
+        }
+        // 校验邮箱
+        if (!StringUtil.iSEmpty(user.getEmail())
+            && !user.getEmail().equals(existsUser.getEmail())) {
+            updateUser.setEmail(user.getEmail());
+            checkAttr = true;
+        }
+        // 校验电话号码
+        if (!StringUtil.iSEmpty(user.getPhoneNum())
+            && !user.getPhoneNum().equals(existsUser.getPhoneNum())) {
+            updateUser.setPhoneNum(user.getPhoneNum());
+            checkAttr = true;
+        }
+        // 校验个人简介
+        if (!StringUtil.iSEmpty(user.getRemark())
+                && !user.getRemark().equals(existsUser.getRemark())) {
+            updateUser.setRemark(user.getRemark());
+            checkAttr = true;
+        }
+        if (!checkAttr) {
+            log.warn(ResultCode.FAILED_PARAMS_VALIDATE.toString());
+            throw new ApplicationException(AppResult.failed(ResultCode.FAILED_PARAMS_VALIDATE));
+        }
+        // 调用dao层
+        int row = userMapper.updateByPrimaryKeySelective(updateUser);
+        if(row != 1) {
+            log.warn(ResultCode.ERROR_SERVICES.toString());
+            throw new ApplicationException(AppResult.failed(ResultCode.ERROR_SERVICES));
+        }
+    }
+
+    @Override
+    public void modifyPassword(Long id, String oldPassword, String newPassword) {
+        if (id == null || id <= 0 || StringUtil.iSEmpty(oldPassword) || StringUtil.iSEmpty(newPassword)) {
+            log.warn(ResultCode.FAILED_PARAMS_VALIDATE.toString());
+            throw new ApplicationException(AppResult.failed(ResultCode.FAILED_PARAMS_VALIDATE));
+        }
+        User user = userMapper.selectByPrimaryKey(id);
+        if (user == null || user.getDeleteState() == 1) {
+            log.warn(ResultCode.FAILED_USER_NOT_EXISTS.toString());
+            throw new ApplicationException(AppResult.failed(ResultCode.FAILED_USER_NOT_EXISTS));
+        }
+        // 校验老密码是否正确
+        String oldEncryptPassword = MD5Util.md5Salt(oldPassword, user.getSalt());
+        if (!oldEncryptPassword.equals(user.getPassword())) {
+            log.warn(ResultCode.FAILED.toString());
+            throw new ApplicationException(AppResult.failed(ResultCode.FAILED));
+        }
+        String salt = UUIDUtil.UUID_32();
+        String password = MD5Util.md5Salt(newPassword, salt);
+        User updateUser = new User();
+        updateUser.setId(user.getId());
+        updateUser.setSalt(salt);
+        updateUser.setPassword(password); // 新密码对应的密文
+        updateUser.setUpdateTime(new Date());
+        // dao层代码
+        int row = userMapper.updateByPrimaryKeySelective(updateUser);
+        if (row != 1) {
+            log.warn(ResultCode.FAILED.toString());
+            throw new ApplicationException(AppResult.failed(ResultCode.FAILED));
+        }
     }
 }

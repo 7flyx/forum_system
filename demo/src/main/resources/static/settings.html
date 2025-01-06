@@ -193,7 +193,26 @@
     // ================= 获取用户详情，初始化页面内容 =================
     // 发送AJAX请求，成功时 调用initUserInfo方法，完成页面数据初始化
     $.ajax({
-      
+      url: 'user/info',
+      type:'get',
+      success: function(result) {
+        if (result.code == 0) {
+          initUserInfo(result.data);
+        } else {
+          $.toast({
+            heading: '警告',
+            text: result.message,
+            icon: 'warning'
+          });
+        }
+      },
+      error: function(result) {
+        $.toast({
+          heading: '错误',
+          text: '出现错误',
+          icon: 'error'
+        });
+      }
     });
   });
 
@@ -232,9 +251,9 @@
     }
 
     // 构造query string
-    let searchParams = new URLSearchParams(userInfo);
-    let queryString = '?' + searchParams.toString();
-    console.log(queryString);
+    // let searchParams = new URLSearchParams(userInfo);
+    // let queryString = '?' + searchParams.toString();
+    // console.log(queryString);
 
     // 定义接口路径
     let userURL = 'user/modifyInfo';
@@ -246,7 +265,43 @@
 
     // 发送请求，提示响应结果
     $.ajax({
-      
+      url: userURL,
+      type: 'post',
+      contentType: 'application/x-www-form-urlencoded',
+      data: userInfo,
+      success: function(result) {
+        if (result.code == 0) {
+          // 修改页面的内容：nickname等
+          let user = result.data;
+          if (user && user.nickname) {
+            $('#settings_nickname').html(user.nickname); // 个人中心的昵称
+            $('#index_nav_nickname').html(user.nickname); // 导航栏的昵称
+          }
+          $.toast({
+            heading: '提示',
+            text: result.message,
+            icon: 'success'
+          });
+          if(type == 2) {
+            location.assign('/sign-in.html');
+            return;
+          }
+          
+        } else {
+          $.toast({
+          heading: '警告',
+          text: '请检查要修改的内容是否正确或联系管理员',
+          icon: 'warning'
+        });
+        }
+      },
+      error: function(result) {
+        $.toast({
+          heading: '错误',
+          text: '请检查要修改的内容是否正确或联系管理员',
+          icon: 'error'
+        });
+      }
     });
 
   }

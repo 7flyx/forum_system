@@ -42,7 +42,7 @@ class UserServiceImplTest {
 
     @Test
     void login() {
-        User user = userService.login("admin1", "123456");
+        User user = userService.login("admin1", "222222");
         System.out.println(user);
     }
 

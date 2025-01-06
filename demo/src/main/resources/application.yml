@@ -5,7 +5,7 @@ spring:
     name: forum_system
   # 数据库连接配置
   datasource:
-    url: jdbc:mysql://127.0.0.1:3306/forum_db?characterEncoding=utf8&useSSL=false&serverTimezone=UTC
+    url: jdbc:mysql://127.0.0.1:3306/forum_db?characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&useLegacyDatetimeCode=false
     username: root
     password: 2001
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -37,9 +37,10 @@ logging:
     dateformat: MM-dd HH:ss # 日期显示格式
   level:
     root: info # 日志的默认级别
-    com.fly.demo: debug # 指定包下的日志级别
+#    com.fly.demo: debug # 指定包下的日志级别 开发环境的日志目录
   file:
-    path: E:/Github_Coding/log/forum_system # 日志保存的路径
+    path: /log/forum_001 # 生产环境的日志目录
+#    path: E:/Github_Coding/log/forum_system # 日志保存的路径
 
 
 fly-forum:

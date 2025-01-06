@@ -119,4 +119,136 @@ public class ArticleServiceImpl implements IArticleService {
         article.setVisitCount(article.getVisitCount() + 1); // 返回的时候，帖子的访问数量+1
         return article;
     }
+
+    @Override
+    public void modify(Long id, String title, String content) {
+        if (id == null || id <= 0 || StringUtil.iSEmpty(title) || StringUtil.iSEmpty(content)) {
+            log.warn(ResultCode.FAILED_PARAMS_VALIDATE.toString());
+            throw new ApplicationException(AppResult.failed(ResultCode.FAILED_PARAMS_VALIDATE));
+        }
+        // 构建要更新的帖子对象
+        Article updateArticle = new Article();
+        updateArticle.setId(id);
+        updateArticle.setTitle(title);
+        updateArticle.setContent(content);
+        updateArticle.setUpdateTime(new Date());
+        // 调用dao层代码
+        int row = articleMapper.updateByPrimaryKeySelective(updateArticle);
+        if (row != 1) {
+            log.warn(ResultCode.ERROR_SERVICES.toString());
+            throw new ApplicationException(AppResult.failed(ResultCode.ERROR_SERVICES));
+        }
+    }
+
+    @Override
+    public Article selectById(Long id) {
+        if (id == null || id <= 0) {
+            log.warn(ResultCode.FAILED_PARAMS_VALIDATE.toString());
+            throw new ApplicationException(AppResult.failed(ResultCode.FAILED_PARAMS_VALIDATE));
+        }
+        Article article = articleMapper.selectByPrimaryKey(id);
+        return article;
+    }
+
+    @Override
+    public void thumbsUpById(Long id) {
+        if (id == null || id <= 0) {
+            log.warn(ResultCode.FAILED_PARAMS_VALIDATE.toString());
+            throw new ApplicationException(AppResult.failed(ResultCode.FAILED_PARAMS_VALIDATE));
+        }
+        // 获取帖子详情
+        Article article = articleMapper.selectByPrimaryKey(id);
+        if (article == null) {
+            log.warn(ResultCode.FAILED_ARTICLE_NOT_EXISTS.toString());
+            throw new ApplicationException(AppResult.failed(ResultCode.FAILED_ARTICLE_NOT_EXISTS));
+        }
+        if (article.getState() == 1 || article.getDeleteState() == 1) {
+            log.warn(ResultCode.FAILED_ARTICLE_BANNED.toString());
+            throw new ApplicationException(AppResult.failed(ResultCode.FAILED_ARTICLE_BANNED));
+        }
+
+        Article updateArticle = new Article();
+        updateArticle.setId(id);
+        updateArticle.setLikeCount(article.getLikeCount() + 1);
+        updateArticle.setUpdateTime(new Date());
+        // 调用dao层代码
+        int row = articleMapper.updateByPrimaryKeySelective(updateArticle);
+        if (row != 1) {
+            log.warn("点赞失败: " + ResultCode.ERROR_SERVICES.toString());
+            throw new ApplicationException(AppResult.failed(ResultCode.ERROR_SERVICES));
+        }
+    }
+
+    @Override
+    public void deleteById(Long id) {
+        if (id == null || id <= 0) {
+            log.warn(ResultCode.FAILED_PARAMS_VALIDATE.toString());
+            throw new ApplicationException(AppResult.failed(ResultCode.FAILED_PARAMS_VALIDATE));
+        }
+        // 获取帖子详情
+        Article article = articleMapper.selectByPrimaryKey(id);
+        if (article == null || article.getDeleteState() == 1) {
+            log.warn(ResultCode.FAILED_ARTICLE_NOT_EXISTS.toString());
+            throw new ApplicationException(AppResult.failed(ResultCode.FAILED_ARTICLE_NOT_EXISTS));
+        }
+        // 构造更新对象
+        Article updateArticle = new Article();
+        updateArticle.setId(article.getId());
+        updateArticle.setDeleteState((byte)1);
+        int row = articleMapper.updateByPrimaryKeySelective(updateArticle);
+        if (row != 1) {
+            log.warn("删帖失败: " + ResultCode.ERROR_SERVICES.toString());
+            throw new ApplicationException(AppResult.failed(ResultCode.ERROR_SERVICES));
+        }
+        // 更新板块中的帖子数
+        boardService.subOneArticleCountById(article.getBoardId());
+        // 更新用户发帖数
+        userService.subOneArticleCountById(article.getUserId());
+        log.info("删除帖子成功, article id = " + article.getId() + ", usr id = " + article.getUserId());
+    }
+
+    @Override
+    public void addOneReplyCountById(Long id) {
+        if (id == null || id <= 0) {
+            log.warn(ResultCode.FAILED_PARAMS_VALIDATE.toString());
+            throw new ApplicationException(AppResult.failed(ResultCode.FAILED_PARAMS_VALIDATE));
+        }
+        // 获取帖子详情
+        Article article = articleMapper.selectByPrimaryKey(id);
+        if (article == null || article.getDeleteState() == 1) {
+            log.warn(ResultCode.FAILED_ARTICLE_NOT_EXISTS.toString());
+            throw new ApplicationException(AppResult.failed(ResultCode.FAILED_ARTICLE_NOT_EXISTS));
+        }
+        if(article.getState() == 1) {
+            log.warn(ResultCode.FAILED_ARTICLE_BANNED.toString());
+            throw new ApplicationException(AppResult.failed(ResultCode.FAILED_ARTICLE_BANNED));
+        }
+
+        // 构造更新对象
+        Article updateArticle = new Article();
+        updateArticle.setId(article.getId());
+        updateArticle.setReplyCount(article.getReplyCount() + 1);
+        updateArticle.setUpdateTime(new Date());
+        // 执行更新
+        int row = articleMapper.updateByPrimaryKeySelective(updateArticle);
+        if (row != 1) {
+            log.warn(ResultCode.ERROR_SERVICES.toString());
+            throw new ApplicationException(AppResult.failed(ResultCode.ERROR_SERVICES));
+        }
+    }
+
+    @Override
+    public List<Article> selectByUserId(Long userId) {
+        if(userId == null || userId <= 0) {
+            log.warn(ResultCode.FAILED_PARAMS_VALIDATE.toString());
+            throw new ApplicationException(AppResult.failed(ResultCode.FAILED_PARAMS_VALIDATE));
+        }
+        User user = userService.selectById(userId);
+        if (user == null) {
+            log.warn(ResultCode.FAILED_USER_NOT_EXISTS.toString());
+            throw new ApplicationException(AppResult.failed(ResultCode.FAILED_USER_NOT_EXISTS));
+        }
+        List<Article> articles = articleMapper.selectByUserId(userId);
+        return articles;
+    }
 }

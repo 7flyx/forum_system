@@ -117,4 +117,55 @@ public class UserController {
         return AppResult.success("退出成功");
     }
 
+    @ApiOperation("修改个人信息")
+    @PostMapping("modifyInfo")
+    public AppResult modifyInfo(HttpServletRequest req,
+                                @ApiParam("用户名") @RequestParam(value = "username",required = false) String username,
+                                 @ApiParam("昵称") @RequestParam(value = "nickname" ,required = false ) String nickname,
+                                 @ApiParam("性别") @RequestParam(value = "gender"   ,required = false) Byte gender,
+                                 @ApiParam("邮箱") @RequestParam(value = "email"    ,required = false) String email,
+                                 @ApiParam("电话") @RequestParam(value = "phoneNum" ,required = false) String phoneNum,
+                                 @ApiParam("个人简介") @RequestParam(value = "remark" ,required = false) String remark) {
+        // 对参数做非空校验（全部为空时，返回错误描述
+        if(StringUtil.iSEmpty(username) && StringUtil.iSEmpty(nickname) && gender == null &&
+                StringUtil.iSEmpty(email) && StringUtil.iSEmpty(phoneNum) && StringUtil.iSEmpty(remark)) {
+            return AppResult.failed("请输入要修改的信息");
+        }
+        // 从session中获取用户id
+        HttpSession session = req.getSession(false);
+        User user = (User)session.getAttribute(AppConfig.USER_SESSION);
+        User updateUser = new User();
+        updateUser.setId(user.getId());
+        updateUser.setUsername(username);
+        updateUser.setNickname(nickname);
+        updateUser.setGender(gender);
+        updateUser.setEmail(email);
+        updateUser.setPhoneNum(phoneNum);
+        updateUser.setRemark(remark);
+//        System.out.println("-------------------------- " + updateUser.getRemark());
+        // dao层代码
+        userService.modifyInfo(updateUser);
+        user = userService.selectById(user.getId()); // 设置新的user信息
+        return AppResult.success(user);
+    }
+
+
+    @ApiOperation("修改密码")
+    @PostMapping("/modifyPwd")
+    public AppResult modifyPassword(HttpServletRequest req,
+                                    @ApiParam("旧密码") @RequestParam("oldPassword") @NonNull String oldPassword,
+                                    @ApiParam("新密码") @RequestParam("newPassword") @NonNull String newPassword,
+                                    @ApiParam("重复密码") @RequestParam("passwordRepeat") @NonNull String passwordRepeat) {
+        if (!newPassword.equals(passwordRepeat)) {
+            return AppResult.failed(ResultCode.FAILED_TOW_PWD_NOT_SAME.toString());
+        }
+        // 获取当前登录的用户
+        // 从session中获取用户id
+        HttpSession session = req.getSession(false);
+        User user = (User)session.getAttribute(AppConfig.USER_SESSION);
+        userService.modifyPassword(user.getId(), oldPassword, newPassword);
+        session.invalidate(); // 修改密码成功后，注销session，强制用户重新登录（拦截器会做）
+        return AppResult.success();
+    }
+
 }

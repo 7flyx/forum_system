@@ -21,4 +21,22 @@ public interface IArticleService {
     // 根据帖子id查询详情
     Article selectDetailById(Long id);
 
+    // 编辑帖子
+    void modify(Long id, String title, String content);
+
+    // 根据帖子id查询记录
+    Article selectById(Long id);
+
+    // 点赞帖子
+    void thumbsUpById(Long id);
+
+    // 根据id删除帖子
+    @Transactional
+    void deleteById(Long id);
+
+    // 回复数量+1
+    void addOneReplyCountById(Long id);
+    // 根据用户id查询 帖子列表
+    List<Article> selectByUserId(Long userId);
+
 }

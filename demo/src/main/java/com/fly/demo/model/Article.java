@@ -1,5 +1,6 @@
 package com.fly.demo.model;
 
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.util.Date;
@@ -27,6 +28,9 @@ public class Article {
     private Date updateTime;
 
     private String content;
+
+    @ApiModelProperty("是否作者")
+    private Boolean own;
 
     // 关联对象
     private User user;

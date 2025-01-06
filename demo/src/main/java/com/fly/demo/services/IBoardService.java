@@ -12,4 +12,7 @@ public interface IBoardService {
     void addOneArticleCountById(Long id);
     // 根据板块id查询 板块信息
     Board selectById(Long id);
+
+    // 板块中的帖子数量-1
+    void subOneArticleCountById(Long id);
 }

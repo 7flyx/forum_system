@@ -98,12 +98,31 @@
     // 构造查询用户信息的queryString
     let userInfoQueryString = '';
     if (profileUserId) {
-      userInfoQueryString = '?id=' + profileUserId
+      userInfoQueryString = '?id=' + profileUserId;
     }
     // ============= 获取用户信息 =============
     // 成功时调用initProfileUserInfo()方法，初始化用户数据
     $.ajax({
-      
+      url: 'user/info' + userInfoQueryString,
+      type:'get',
+      success: function(result) {
+        if (result.code == 0) {
+          initProfileUserInfo(result.data);
+        } else {
+          $.toast({
+            heading: '警告',
+            text: result.message,
+            icon: 'warning'
+          });
+        }
+      },
+      error: function(result) {
+        $.toast({
+          heading: '错误',
+          text: '出现错误',
+          icon: 'error'
+        });
+      }
     });
 
     // ============= 设置Profile页面用户信息 ================
@@ -146,14 +165,33 @@
     // 构造查询用户信息的queryString
     let articleListQueryString = '';
     if (profileUserId) {
-      articleListQueryString = '?userId=' + profileUserId
+      articleListQueryString = '?userId=' + profileUserId;
     }
     // ============= 获取当前用户发贴 =============
     // url: 'article/getAllByUserId' + articleListQueryString
     // 成功后，调用buildProfileUserArticle()方法，构造帖子列表
 
     $.ajax({
-      
+      url: 'article/getAllByUserId' + articleListQueryString,
+      type: 'get',
+      success: function(result) {
+        if (result.code == 0) {
+          buildProfileUserArticle(result.data);
+        } else {
+          $.toast({
+            heading: '警告',
+            text: result.message,
+            icon: 'warning'
+          });
+        }
+      },
+      error: function(result) {
+        $.toast({
+          heading: '错误',
+          text: '出现错误',
+          icon: 'error'
+        });
+      }
     });
 
     // ============= 构建用户帖子列表 =============

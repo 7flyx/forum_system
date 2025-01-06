@@ -23,4 +23,13 @@ public interface IUserService {
 
     // 发帖数加1
     void addOneArticleCountById(Long id);
+
+    // 帖子数量-1
+    void subOneArticleCountById(Long id);
+
+    // 修改个人信息
+    void modifyInfo(User user);
+
+    // 更改密码
+    void modifyPassword(Long id, String oldPassword, String newPassword);
 }

@@ -24,7 +24,10 @@ public enum ResultCode {
     FAILED_BOARD_ARTICLE_COUNT(1201, "更新帖子数量失败"),
     FAILED_BOARD_BANNED(1202, "板块状态异常"),
     FAILED_BOARD_NOT_EXISTS(1203, "板块不存在"),
-    FAILED_ARTICLE_NOT_EXISTS(1301, "帖子不存在");
+    FAILED_ARTICLE_NOT_EXISTS(1301, "帖子不存在"),
+    FAILED_ARTICLE_BANNED(1302, "帖子状态异常"),
+    // 站内信的描述
+    FAILED_MESSAGE_NOT_EXISTS(1401, "站内信不存在");
     int code; // 状态码
     String message; // 描述信息
 

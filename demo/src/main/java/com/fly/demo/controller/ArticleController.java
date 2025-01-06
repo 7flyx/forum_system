@@ -89,13 +89,105 @@ public class ArticleController {
 
     @ApiOperation("根据帖子id获取详情")
     @GetMapping("/details")
-    public AppResult<Article> getDetails(@ApiParam("帖子id") @RequestParam("id") @NonNull Long id) {
+    public AppResult<Article> getDetails(HttpServletRequest req ,
+            @ApiParam("帖子id") @RequestParam("id") @NonNull Long id) {
+        // 从session中获取当前的登录用户
+        HttpSession session = req.getSession(false);
+        User user = (User)session.getAttribute(AppConfig.USER_SESSION);
         // 调用Services层，获取帖子详情
         Article article = articleService.selectDetailById(id);
         if (article == null) {
             return AppResult.failed(ResultCode.FAILED_ARTICLE_NOT_EXISTS.toString());
         }
+        // 判断当前登录用户与文章作者是否相同
+        if (user.getId() == article.getUserId()) {
+//            System.out.println("true hhhhhhhhhhh");
+            article.setOwn(true);
+        }
         return AppResult.success(article);
     }
 
+
+    @ApiOperation("修改帖子")
+    @PostMapping("/modify")
+    public AppResult modify(HttpServletRequest req,
+                            @ApiParam("帖子id") @RequestParam("id") @NonNull Long id,
+                            @ApiParam("标题") @RequestParam("title") @NonNull String title,
+                            @ApiParam("内容") @RequestParam("content") @NonNull String content) {
+        // 获取当前登录的用户
+        HttpSession session = req.getSession(false);
+        User user = (User)session.getAttribute(AppConfig.USER_SESSION);
+        // 检查用户状态
+        if(user.getState() == 1) { // 禁言中，不能修改帖子
+            return AppResult.failed(ResultCode.FAILED_USER_BANNED.toString());
+        }
+        // 查询帖子详情
+        Article article = articleService.selectById(id);
+        if (article == null) {
+            return AppResult.failed(ResultCode.FAILED_ARTICLE_NOT_EXISTS.toString());
+        }
+        // 校验是不是作者
+        if (user.getId() != article.getUserId()) {
+            return AppResult.failed(ResultCode.FAILED_FORBIDDEN.toString());
+        }
+        // 判断帖子的状态
+        if (article.getState() == 1 || article.getDeleteState() == 1) {
+            return AppResult.failed(ResultCode.FAILED_FORBIDDEN.toString());
+        }
+        // 调用Services层代码
+        articleService.modify(id, title, content);
+        // 不抛异常，说明更新成功
+        log.info("帖子更新成功, article id = " + article.getId());
+        return AppResult.success();
+    }
+
+    @ApiOperation("点赞")
+    @PostMapping("/thumbsUp")
+    public AppResult thumbsUp(HttpServletRequest req,  @ApiParam("帖子id") @RequestParam("id") @NonNull Long id) {
+
+        // 获取当前登录的用户
+        HttpSession session = req.getSession(false);
+        User user = (User)session.getAttribute(AppConfig.USER_SESSION);
+        if (user.getState() == 1) { // 判断用户是否禁言
+            return AppResult.failed(ResultCode.FAILED_USER_BANNED);
+        }
+        // 直接调用Services层
+        articleService.thumbsUpById(id);
+        return AppResult.success();
+    }
+
+    @ApiOperation("删除帖子")
+    @PostMapping("/delete")
+    public AppResult deleteById(HttpServletRequest req, @ApiParam("帖子id") @RequestParam("id") @NonNull Long id) {
+        // 获取当前登录的用户
+        HttpSession session = req.getSession(false);
+        User user = (User)session.getAttribute(AppConfig.USER_SESSION);
+        if (user.getState() == 1) { // 判断用户是否禁言
+            return AppResult.failed(ResultCode.FAILED_USER_BANNED);
+        }
+        // 查询帖子详情
+        Article article = articleService.selectById(id);
+        if (article == null || article.getDeleteState() == 1) {
+            return AppResult.failed(ResultCode.FAILED_ARTICLE_NOT_EXISTS);
+        }
+        // 校验当前登录的用户是不是作者
+        if (user.getId() != article.getUserId()) {
+            return AppResult.failed(ResultCode.FAILED_FORBIDDEN);
+        }
+        articleService.deleteById(id);
+        return AppResult.success();
+    }
+
+    @ApiOperation("获取用户的帖子列表")
+    @GetMapping("/getAllByUserId")
+    public AppResult getAllByUserId(HttpServletRequest req,
+                                    @ApiParam("用户id") @RequestParam(value = "userId", required = false) Long userId) {
+        if (userId == null) {
+            HttpSession session = req.getSession(false);
+            User user = (User) session.getAttribute(AppConfig.USER_SESSION);
+            userId = user.getId();
+        }
+        List<Article> articles = articleService.selectByUserId(userId);
+        return AppResult.success(articles);
+    }
 }
